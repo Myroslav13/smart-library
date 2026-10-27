@@ -18,6 +18,7 @@ export class AuthGatewayController {
 
   @Public()
   @Post('auth/login')
+  @HttpCode(HttpStatus.OK)
   login(@Body() body: LoginDto) {
     return this.gateway.send('auth', 'login', { body });
   }

@@ -53,6 +53,7 @@ export class OrderGatewayController {
 
   @Roles(Role.CLIENT, Role.ADMIN)
   @Post('orders/:id/cancel')
+  @HttpCode(HttpStatus.OK)
   cancel(@CurrentUser() user: PublicUser, @Param('id') id: string) {
     return this.gateway.send('orders', 'cancel', { user, params: { id } });
   }

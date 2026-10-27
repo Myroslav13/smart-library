@@ -54,7 +54,7 @@ function webhookBody(provider: string, orderId: string) {
 async function run(base: string): Promise<void> {
   const health = await api(base, 'GET', '/api/health');
   assert(health.status === 200 && health.data.status === 'ok', 'Сервіс не відповів на /api/health');
-  console.log('1. Health:', health.data.components.join(', '));
+  console.log('1. Health:', health.data.entry);
 
   const login = await api(base, 'POST', '/api/auth/login', {
     body: { email: 'client@library.test', password: 'client123' },
