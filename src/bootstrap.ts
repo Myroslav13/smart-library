@@ -1,6 +1,6 @@
 import { INestApplication, LogLevel } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { json } from 'express';
+import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
 import {
@@ -14,7 +14,6 @@ import {
   RecommendationAppModule,
 } from './apps';
 import { configureApp } from './configure-app';
-import { handleGateway } from './gateway/api-gateway';
 import { runtime, type ServiceName } from './runtime';
 
 export interface RunningSystem {
@@ -35,7 +34,12 @@ export async function startSystem(options: { gatewayPort: number; logger?: LogLe
   const boot = async (module: Parameters<typeof NestFactory.create>[0], name: ServiceName) => {
     const app = await NestFactory.create(module, { logger });
     configureApp(app);
+    app.connectMicroservice({
+      transport: Transport.TCP,
+      options: { host: '127.0.0.1', port: runtime.transports[name] },
+    });
     await app.listen(0, '127.0.0.1');
+    await app.startAllMicroservices();
     runtime.urls[name] = urlOf(app);
     apps.push(app);
   };
@@ -48,19 +52,25 @@ export async function startSystem(options: { gatewayPort: number; logger?: LogLe
   await boot(NotificationAppModule, 'notifications');
   await boot(RecommendationAppModule, 'recommendations');
 
-  const gateway = await NestFactory.create(GatewayModule, { logger, bodyParser: false });
-  const expressApp = gateway.getHttpAdapter().getInstance();
-  expressApp.disable('x-powered-by');
-  expressApp.use(json());
-  expressApp.use((req: Parameters<typeof handleGateway>[0], res: Parameters<typeof handleGateway>[1]) => {
-    void handleGateway(req, res);
-  });
+  for (const name of Object.keys(runtime.transports) as ServiceName[]) {
+    const client = ClientProxyFactory.create({
+      transport: Transport.TCP,
+      options: { host: '127.0.0.1', port: runtime.transports[name] },
+    });
+    await client.connect();
+    runtime.clients[name] = client;
+  }
+
+  const gateway = await NestFactory.create(GatewayModule, { logger });
+  configureApp(gateway);
   await gateway.listen(options.gatewayPort, '127.0.0.1');
   apps.push(gateway);
 
   return {
     gatewayUrl: urlOf(gateway),
     close: async () => {
+      for (const client of Object.values(runtime.clients)) await client?.close();
+      runtime.clients = {};
       for (const app of [...apps].reverse()) await app.close();
     },
   };

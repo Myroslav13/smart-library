@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { CatalogController } from './catalog.controller';
 import { CatalogInternalController } from './catalog-internal.controller';
 import { CatalogService } from './catalog.service';
+import { CatalogRpcController } from './catalog-rpc.controller';
 
 @Module({
-  controllers: [CatalogController, CatalogInternalController],
+  controllers: [CatalogInternalController, CatalogRpcController],
   providers: [CatalogService],
   exports: [CatalogService],
 })

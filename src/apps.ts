@@ -9,6 +9,8 @@ import { OrderModule } from './orders/order.module';
 import { PaymentModule } from './payments/payment.module';
 import { RecommendationModule } from './recommendations/recommendation.module';
 import { AuthSeed, CatalogSeed, InventorySeed, OrderSeed, RecommendationSeed } from './shared/local-seeds';
+import { GatewayModule } from './gateway/gateway.module';
+export { GatewayModule };
 
 @Module({
   imports: [InfrastructureModule, ServiceBoundaryModule, AuthModule],
@@ -49,6 +51,3 @@ export class NotificationAppModule {}
   providers: [RecommendationSeed],
 })
 export class RecommendationAppModule {}
-
-@Module({})
-export class GatewayModule {}

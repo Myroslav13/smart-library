@@ -14,6 +14,7 @@ function header(value: string | string[] | undefined): string {
 @Injectable()
 export class TrustedGatewayGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
+    if (context.getType() !== 'http') return true;
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     if (header(request.headers['x-internal-token']) !== runtime.internalToken) {
       throw new AppError('Доступ лише через API Gateway', 401);

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { OrderController } from './order.controller';
 import { OrderInternalController } from './order-internal.controller';
 import { OrderService } from './order.service';
+import { OrderRpcController } from './order-rpc.controller';
 
 @Module({
-  controllers: [OrderController, OrderInternalController],
+  controllers: [OrderInternalController, OrderRpcController],
   providers: [OrderService],
   exports: [OrderService],
 })
